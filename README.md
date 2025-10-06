@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DevOps Assessment: Containerized Next.js Application
 
-## Getting Started
+This repository contains a simple Next.js application that has been containerized with Docker and is set up for automated deployment to a Kubernetes cluster (Minikube) using GitHub Actions.
 
-First, run the development server:
+## 📋 Table of Contents
+1.  [Objective](#-objective)
+2.  [Prerequisites](#-prerequisites)
+3.  [Running Locally with Docker](#-running-locally-with-docker)
+4.  [CI/CD with GitHub Actions](#-ci/cd-with-github-actions)
+5.  [Deployment to Minikube](#-deployment-to-minikube)
+6.  [Accessing the Application](#-accessing-the-application)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🎯 Objective
+The goal of this project is to demonstrate proficiency in:
+* **Containerization**: Using Docker with multi-stage builds for an optimized and secure image.
+* **Automation (CI/CD)**: Building and pushing Docker images automatically to GHCR using GitHub Actions.
+* **Orchestration**: Deploying the containerized application to Kubernetes using declarative manifest files.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Prerequisites
+Before you begin, ensure you have the following tools installed:
+* [Docker](https://www.docker.com/get-started)
+* [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 💻 Running Locally with Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+You can build and run this application on your local machine using Docker.
 
-## Learn More
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/ankurshashwat/wexa-ai.git
+    cd wexa-ai
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Build the Docker image:**
+    ```bash
+    docker build -t nextjs-local-app .
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Run the Docker container:**
+    ```bash
+    docker run -p 3000:3000 nextjs-local-app
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4.  **Access the application:**
+    Open your web browser and navigate to `http://localhost:3000`.
 
-## Deploy on Vercel
+## 🚀 CI/CD with GitHub Actions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project uses GitHub Actions to automate the building and publishing of the Docker image.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* **Workflow file**: `.github/workflows/main.yml`
+* **Trigger**: The workflow runs automatically on every `push` to the `main` branch.
+* **Actions**:
+    1.  Checks out the code.
+    2.  Logs into GitHub Container Registry (GHCR).
+    3.  Builds the Docker image and pushes it to GHCR with two tags:
+        * `latest`
+        * The commit SHA (e.g., `a1b2c3d4`) for versioning.
+
+The published image can be found at:
+`ghcr.io/ankurshashwat/wexa-ai:latest`
+
+## 📦 Deployment to Minikube
+
+Follow these steps to deploy the application to your local Kubernetes cluster.
+
+1.  **Start Minikube:**
+    ```bash
+    minikube start
+    ```
+
+2.  **Update the Deployment Manifest:**
+    Before deploying, you **must** edit the `k8s/deployment.yaml` file. Replace the placeholder image URL with the URL of the image you pushed to GHCR.
+
+    Find this line:
+    ```yaml
+    image: ghcr.io/ankurshashwat/wexa-ai:latest
+    ```
+    And change it to your actual image URL.
+
+3.  **Apply the Kubernetes Manifests:**
+    Use `kubectl` to apply the deployment and service configurations from the `k8s` folder.
+    ```bash
+    kubectl apply -f k8s/
+    ```
+    This command will create the Deployment and the Service in your Minikube cluster.
+
+4.  **Verify the Deployment:**
+    Check that the pods are running correctly.
+    ```bash
+    kubectl get pods
+    ```
+    You should see two pods with a status of `Running`.
+
+## 🌐 Accessing the Application
+
+Once deployed, you can access the application through the `NodePort` service.
+
+1.  **Get the application URL:**
+    Minikube provides a handy command to get the URL for a service.
+    ```bash
+    minikube service nextjs-service --url
+    ```
+
+2.  **View in browser:**
+    The command will output a URL (e.g., `http://192.168.49.2:30001`). Open this URL in your web browser to see the running Next.js application.
